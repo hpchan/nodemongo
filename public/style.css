@@ -1,0 +1,39 @@
+body {
+    margin-left: 50px;
+}
+
+pre {
+    font-size:30px;
+    display:inline-block;
+    color: white;
+    background-color:darkgreen;
+}
+
+table {
+    color:darkblue;
+    background-color:yellow;
+}
+
+.listButton {
+    font-size:15px;
+    padding: 3px 10px;
+    color: black;
+    background-color: orange;
+    border-radius: 3px;
+    border: 1px solid black;
+}
+
+.inputField {
+   background-color: white;
+}
+
+.actionButton {
+    margin-top: 10px;
+    font-size:15px;
+    padding: 3px 10px;
+    color: white;
+    background-color: blue;
+    border-radius: 3px;
+    border: 1px solid black;
+}
+

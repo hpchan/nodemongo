@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <link rel="stylesheet" href="style.css">
+   <meta charset="utf-8"/>
+   <title> MongoDB  </title>
+</head>
+
+<body onload="initial();">
+   <pre>《 Node.js/MongoDB 》</pre>  
+   <form>
+      <input class="listButton" type="button" onclick="getAllDocument()" value="列出所有文件">   
+      <br>
+      <table id="myTable" border="1">
+         <tr id="tr1"></tr>
+            <td> ID </td>
+            <td> Name </td>
+            <td> Email </td>
+         </tr>
+      </table>
+   </form> 
+   
+   <form>
+      <br>ID: <input class="inputField" type="text" id="field1">
+      <br>Name: <input class="inputField" type="text" id="field2">
+      <br>Email: <input class="inputField" type="text" id="field3"><br>
+      <input class="actionButton" type="button" onclick="insertRow_mongodb(currentRowIndex)" value="插入列">
+      <input class="actionButton" type="button" onclick="deleteRow_mongodb(currentRowIndex)" value="刪除列">
+      <input class="actionButton" type="button" onclick="updateRow_mongodb(currentRowIndex)" value="更改列">
+      <h5>表格列索引 : <span id="pos"></span> </h5>
+   </form>
+</body>
+
+<!====================================================================>
+<script>
+//刪除頁面表格的所有文件, 只留下標題那一列，這樣table物件就依然存在   
+function clearDocument() {
+   var table = document.getElementById("myTable");
+   var tbRows = table.rows.length;
+   while (tbRows > 1) {                  //不刪除標題那一列, 第0列
+      tbRows--;
+      table.deleteRow(tbRows);
+   };
+};
+
+function showDocument(result) {   
+   var docs = JSON.parse(result);
+   var table = document.getElementById("myTable");
+   
+   for (var tbIndex = 1; tbIndex <= docs.length; tbIndex++) {
+      var objRow = table.insertRow(tbIndex);
+      var objCel = objRow.insertCell(0);
+      objCel.innerHTML = docs[tbIndex - 1]._id;    //保留第一列栏位名称
+   
+      objCel = objRow.insertCell(1);
+      objCel.innerHTML = docs[tbIndex - 1].name;
+
+      objCel = objRow.insertCell(2);
+      objCel.innerHTML = docs[tbIndex - 1].email;
+
+      objRow.addEventListener("click", getIndex, false);
+   };    
+};
+//*======================================================================
+// const url = location.host;  
+// console.log("url ====> "+location.host);
+const httpHeaders = new Headers({'Content-Type':'application/json'});
+
+function getAllDocument() {
+   clearDocument();                     //先刪除頁面表格的所有文件  
+   fetch("/findAll",{method:'GET', headers:httpHeaders})
+   .then(response => response.json())
+   .then(result => showDocument(JSON.stringify(result)));
+};
+
+function insertRow_mongodb(tbIndex) {  
+   var doc = {
+         "_id": document.getElementById("field1").value,
+         "name": document.getElementById("field2").value,
+         "email": document.getElementById("field3").value
+   };
+   var jsonDoc = JSON.stringify(doc);
+   
+   fetch("/insert",{method:'PUT', headers:httpHeaders, body:jsonDoc})
+   .then(response => {
+      if(response.ok) return; 
+      throw new Error('Network response was not ok.');
+   })
+   .then(result => getAllDocument())    // refresh screen
+   .catch((error) => {
+      console.log('There has been a problem with your fetch operation: ', error.message);
+   });
+};
+
+function deleteRow_mongodb(tbIndex) {  
+   var doc = {
+         "_id": document.getElementById("field1").value,
+   };
+   var jsonDoc = JSON.stringify(doc);
+
+   fetch("delete",{method:'PUT', headers:httpHeaders, body:jsonDoc})
+   .then()
+   .then(result => getAllDocument());    // refresh screen
+};
+
+function updateRow_mongodb(tbIndex) {  
+   var doc = {
+         "_id": document.getElementById("field1").value,
+         "name": document.getElementById("field2").value,
+         "email": document.getElementById("field3").value
+   };
+   var jsonDoc = JSON.stringify(doc);
+
+   fetch("update",{method:'PUT', headers:httpHeaders, body:jsonDoc})
+   .then()
+   .then(result => getAllDocument());    // refresh screen
+};
+
+//=======================================================================
+var currentRowIndex = 0;
+
+function initial() {                      // 註冊事件
+   var tr1 = document.getElementById("tr1");
+   tr1.addEventListener("click", getIndex, false);
+   updateIndex(0);                        // for initial setup
+};
+
+function getIndex() {                                          // 事件處理
+   var table = document.getElementById("myTable");             //為了下一行指令
+   var tbRows = table.rows.length;
+   if (currentRowIndex < tbRows) {                             //如果之前是最後 row 被刪，就無法 reset color.
+      table.rows[currentRowIndex].style.background = "yellow";  //上一個被選定(click) row, 設定回舊顏色
+   }
+   if (this.rowIndex == 0) return;                                                       
+   currentRowIndex = this.rowIndex;                            //以目前被(click) row 為新的 index
+   updateIndex(currentRowIndex);
+   this.style.background = "pink";                             //被 click row 設定新顏色
+};
+
+// 當 click 資料表格(myTable)的某一列(this.rowIndex), 將該列的內容複製到輸入區的相對欄位
+function updateIndex(index) {             
+   document.getElementById("pos").innerHTML = index;     //更新表格列索引值
+   var table = document.getElementById("myTable");       //為了下三行指令
+   document.getElementById("field1").value = table.rows[index].cells[0].innerHTML;
+   document.getElementById("field2").value = table.rows[index].cells[1].innerHTML;
+   document.getElementById("field3").value = table.rows[index].cells[2].innerHTML;
+};
+
+</script>
+</html>
